@@ -36,6 +36,12 @@ jobs:
       RUSTC_WRAPPER: "sccache"
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "https://master.cloud.bitbison.io"
       - name: "Install config manager"
         shell: bash
         run: "dnf install -y 'dnf-command(config-manager)'"
@@ -124,6 +130,12 @@ jobs:
       id-token: write
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "https://master.cloud.bitbison.io"
       - name: "Workaround git permissions issue"
         shell: bash
         run: "git config --global --add safe.directory /__w/wezterm/wezterm"

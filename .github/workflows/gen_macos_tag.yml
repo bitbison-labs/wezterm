@@ -100,6 +100,12 @@ jobs:
       id-token: write
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "https://master.cloud.bitbison.io"
       - name: "checkout repo"
         uses: actions/checkout@v5
       - name: "Checkout homebrew tap"

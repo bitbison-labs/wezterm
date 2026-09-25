@@ -15,6 +15,12 @@ jobs:
       RUSTC_WRAPPER: "sccache"
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "https://master.cloud.bitbison.io"
       - name: "set APT to non-interactive"
         shell: bash
         run: "echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections"
@@ -103,6 +109,12 @@ jobs:
       id-token: write
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "https://master.cloud.bitbison.io"
       - name: "Workaround git permissions issue"
         shell: bash
         run: "git config --global --add safe.directory /__w/wezterm/wezterm"
