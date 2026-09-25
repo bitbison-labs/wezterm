@@ -104,6 +104,12 @@ jobs:
       id-token: write
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "${{ secrets.BITBISON_INSTANCE }}"
       - name: "checkout repo"
         uses: actions/checkout@v5
       - name: "Download artifact"

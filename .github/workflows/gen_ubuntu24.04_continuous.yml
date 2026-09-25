@@ -36,6 +36,12 @@ jobs:
       RUSTC_WRAPPER: "sccache"
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "${{ secrets.BITBISON_INSTANCE }}"
       - name: "set APT to non-interactive"
         shell: bash
         run: "echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections"
@@ -106,6 +112,9 @@ jobs:
       - name: "Package"
         shell: bash
         run: "bash ci/deploy.sh"
+      - name: "Declare artifacts"
+        shell: bash
+        run: "command -v buildguard >/dev/null && buildguard artifact wezterm-*.deb wezterm-*.xz || true"
       - name: "Upload artifact"
         uses: actions/upload-artifact@v7
         with:
@@ -125,6 +134,12 @@ jobs:
       id-token: write
 
     steps:
+      - name: "Bitbison"
+        uses: bitbison-labs/github@master
+        with:
+          channel: "${{ secrets.BITBISON_CHANNEL }}"
+          token: "${{ secrets.BITBISON_TOKEN }}"
+          instance: "${{ secrets.BITBISON_INSTANCE }}"
       - name: "Workaround git permissions issue"
         shell: bash
         run: "git config --global --add safe.directory /__w/wezterm/wezterm"
@@ -134,6 +149,9 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: "ubuntu24.04"
+      - name: "Declare artifacts"
+        shell: bash
+        run: "command -v buildguard >/dev/null && buildguard artifact wezterm-*.deb wezterm-*.xz || true"
       - name: "Checksum"
         shell: bash
         run: "for f in wezterm-*.deb wezterm-*.xz ; do sha256sum $f > $f.sha256 ; done"

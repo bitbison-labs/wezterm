@@ -551,7 +551,7 @@ rustup default {toolchain}
         glob = " ".join(patterns)
         paths = "\n".join(patterns)
 
-        return steps + [
+        return steps + self.declare_artifacts() + [
             ActionStep(
                 "Upload artifact",
                 action="actions/upload-artifact@v7",
@@ -613,7 +613,7 @@ rustup default {toolchain}
         glob = " ".join(patterns)
         paths = "\n".join(patterns)
 
-        return steps + [
+        return steps + self.declare_artifacts() + [
             ActionStep(
                 "Upload artifact",
                 action="actions/upload-artifact@v7",
@@ -648,6 +648,7 @@ rustup default {toolchain}
                 action="actions/download-artifact@v8",
                 params={"name": self.name},
             ),
+            *self.declare_artifacts(),
             checksum,
             RunStep(
                 "Upload to Nightly Release",
@@ -683,6 +684,7 @@ rustup default {toolchain}
                 action="actions/download-artifact@v8",
                 params={"name": self.name},
             ),
+            *self.declare_artifacts(),
             checksum,
             RunStep(
                 "Create pre-release",
@@ -827,6 +829,43 @@ rustup default {toolchain}
             self.env["RUSTUP_WINDOWS_PATH_ADD_BIN"] = "1"
         return
 
+    def bitbison(self):
+        """Capture a job that ships assets with Bitbison: first, so the
+        whole job is inside the capture."""
+        return [
+            ActionStep(
+                "Bitbison",
+                action="bitbison-labs/github@master",
+                params={
+                    "channel": "${{ secrets.BITBISON_CHANNEL }}",
+                    "token": "${{ secrets.BITBISON_TOKEN }}",
+                    "instance": "${{ secrets.BITBISON_INSTANCE }}",
+                },
+            )
+        ]
+
+    def bitbison_build(self):
+        # Bitbison captures Linux runners only.
+        if "macos" in self.os or "windows" in self.os:
+            return []
+        return self.bitbison()
+
+    def declare_artifacts(self):
+        """Declare the packaged assets to Bitbison where they sit on
+        disk: in the build job before they are wrapped by upload-artifact,
+        and in the uploader after they are downloaded, so the release
+        upload joins the build's outputs by digest. Best-effort like the
+        capture itself: no buildguard on PATH, no step failure."""
+        if "macos" in self.os or "windows" in self.os:
+            return []
+        glob = " ".join(self.asset_patterns())
+        return [
+            RunStep(
+                "Declare artifacts",
+                f"command -v buildguard >/dev/null && buildguard artifact {glob} || true",
+            )
+        ]
+
     def prep_environment(self, cache=True):
         steps = []
         sudo = "sudo -n " if self.needs_sudo() else ""
@@ -952,7 +991,7 @@ rustup default {toolchain}
         return steps
 
     def continuous(self):
-        steps = self.prep_environment()
+        steps = self.bitbison_build() + self.prep_environment()
         steps += self.build_all_release()
         steps += self.test_all()
         steps += self.package(trusted=True)
@@ -962,7 +1001,9 @@ rustup default {toolchain}
 
         uploader = Job(
             runs_on="ubuntu-latest",
-            steps=self.checkout(submodules=False) + self.upload_asset_nightly(),
+            steps=self.bitbison()
+            + self.checkout(submodules=False)
+            + self.upload_asset_nightly(),
         )
 
         return (
@@ -976,7 +1017,7 @@ rustup default {toolchain}
         )
 
     def tag(self):
-        steps = self.prep_environment()
+        steps = self.bitbison_build() + self.prep_environment()
         steps += self.build_all_release()
         steps += self.test_all()
         steps += self.package(trusted=True)
@@ -984,7 +1025,8 @@ rustup default {toolchain}
 
         uploader = Job(
             runs_on="ubuntu-latest",
-            steps=self.checkout(submodules=False)
+            steps=self.bitbison()
+            + self.checkout(submodules=False)
             + self.update_homebrew_tap()
             + self.upload_asset_tag()
             + self.create_winget_pr()

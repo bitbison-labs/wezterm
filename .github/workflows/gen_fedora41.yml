@@ -100,6 +100,9 @@ jobs:
       - name: "Move RPM"
         shell: bash
         run: "mv ~/rpmbuild/RPMS/*/*.rpm ."
+      - name: "Declare artifacts"
+        shell: bash
+        run: "command -v buildguard >/dev/null && buildguard artifact wezterm-*.rpm || true"
       - name: "Upload artifact"
         uses: actions/upload-artifact@v7
         with:

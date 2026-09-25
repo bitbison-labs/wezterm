@@ -103,6 +103,9 @@ jobs:
       - name: "Package"
         shell: bash
         run: "bash ci/deploy.sh"
+      - name: "Declare artifacts"
+        shell: bash
+        run: "command -v buildguard >/dev/null && buildguard artifact wezterm-*.deb wezterm-*.xz || true"
       - name: "Upload artifact"
         uses: actions/upload-artifact@v7
         with:
