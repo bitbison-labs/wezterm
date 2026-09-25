@@ -31,6 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'wezterm/wezterm'
     steps:
+      - name: Bitbison
+        uses: bitbison-labs/github@master
+        with:
+          channel: ${{ secrets.BITBISON_CHANNEL }}
+          token: ${{ secrets.BITBISON_TOKEN }}
+          instance: ${{ secrets.BITBISON_INSTANCE }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: "Install Rust"
