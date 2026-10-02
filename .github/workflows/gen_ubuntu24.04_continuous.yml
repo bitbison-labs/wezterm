@@ -141,12 +141,13 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: "ubuntu24.04"
-      - name: "Declare artifacts"
-        shell: bash
-        run: "command -v buildguard >/dev/null && buildguard artifact wezterm-*.deb wezterm-*.xz || true"
       - name: "Checksum"
         shell: bash
         run: "for f in wezterm-*.deb wezterm-*.xz ; do sha256sum $f > $f.sha256 ; done"
+      - name: "Declare release assets"
+        # Every file the release upload below ships, by the same globs.
+        shell: bash
+        run: "command -v buildguard >/dev/null && buildguard artifact wezterm-*.deb wezterm-*.xz *.sha256 || true"
       - name: "Upload to Nightly Release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
